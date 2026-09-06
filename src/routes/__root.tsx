@@ -77,18 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ODISSEIA — Uma jornada ao desconhecido" },
+      { title: "HOUSTON — Solana / RobinFun" },
       {
         name: "description",
         content:
-          "Uma experiência imersiva retrô-futurista: atravesse o corredor, decifre os enigmas e descubra o que espera no fim do túnel.",
+          "HOUSTON: telemetria ao vivo, manifesto e plano de voo da missão na Solana. Mesma comunidade, mesmo apoio — pouso na RobinFun em breve.",
       },
-      { name: "author", content: "ODISSEIA" },
-      { property: "og:title", content: "ODISSEIA — Uma jornada ao desconhecido" },
+      { name: "author", content: "HOUSTON" },
+      { property: "og:title", content: "HOUSTON — Solana / RobinFun" },
       {
         property: "og:description",
         content:
-          "Uma experiência imersiva retrô-futurista: atravesse o corredor, decifre os enigmas e descubra o que espera no fim do túnel.",
+          "Telemetria ao vivo, manifesto e plano de voo da missão HOUSTON na Solana. Pouso na RobinFun em breve.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -103,7 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Space+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap",
       },
     ],
   }),

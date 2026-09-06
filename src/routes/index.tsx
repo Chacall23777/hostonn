@@ -1,62 +1,157 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
 import heroAstronaut from "../assets/hero-astronaut.jpg";
 import questionBadge from "../assets/question-badge.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ODISSEIA — Uma jornada ao desconhecido" },
+      { title: "HOUSTON — Solana / RobinFun" },
       {
         name: "description",
         content:
-          "Uma experiência imersiva retrô-futurista: atravesse o corredor, decifre os enigmas e descubra o que espera no fim do túnel.",
+          "HOUSTON: telemetria ao vivo, manifesto e plano de voo da missão na Solana. Mesma comunidade, mesmo apoio — pouso na RobinFun em breve.",
       },
-      { property: "og:title", content: "ODISSEIA — Uma jornada ao desconhecido" },
+      { property: "og:title", content: "HOUSTON — Solana / RobinFun" },
       {
         property: "og:description",
         content:
-          "Uma experiência imersiva retrô-futurista: atravesse o corredor, decifre os enigmas e descubra o que espera no fim do túnel.",
+          "Telemetria ao vivo, manifesto e plano de voo da missão HOUSTON na Solana. Pouso na RobinFun em breve.",
       },
     ],
   }),
   component: Index,
 });
 
-const ENIGMAS = [
-  {
-    numero: "01",
-    titulo: "O Sinal",
-    texto:
-      "Uma transmissão repete a mesma sequência há 40 anos. Ninguém sabe de onde ela vem — ou o que acontece quando ela parar.",
-  },
-  {
-    numero: "02",
-    titulo: "O Corredor",
-    texto:
-      "As plantas da estação mostram 11 seções. Quem atravessa conta 12. A última porta não consta em nenhum registro.",
-  },
-  {
-    numero: "03",
-    titulo: "O Tripulante",
-    texto:
-      "O diário de bordo termina no meio de uma frase. O traje foi encontrado flutuando, intacto, com o visor voltado para dentro.",
-  },
-];
+type Lang = "pt" | "en";
 
-function Marquee() {
-  const faixa = Array.from({ length: 12 }, (_, i) => i);
+const T = {
+  pt: {
+    nav: ["Telemetria", "Manifesto", "Missão", "Comunidade"],
+    live: "AO VIVO NA SOLANA",
+    heroTitleA: "HOUSTON",
+    heroTitleB: "TEMOS UMA MISSÃO",
+    heroSub:
+      "A mesma comunidade, o mesmo apoio — agora em órbita na Solana. Contrato renunciado, liquidez travada e um único destino: a RobinFun.",
+    ctaBuy: "Comprar na Solana",
+    ctaManifest: "Ler o manifesto",
+    caLabel: "CA — clique para copiar",
+    caSoon: "CA ROBINFUN — EM BREVE",
+    netSol: "SOLANA",
+    netRob: "ROBINFUN",
+    telemetryIdx: "/// 001 — TELEMETRIA",
+    telemetryTitle: "DADOS DE VOO",
+    stats: [
+      ["CAPITALIZAÇÃO", "$1.24M", "up"],
+      ["VARIAÇÃO 24H", "+18,6%", "up"],
+      ["HOLDERS", "3.412", "up"],
+      ["LIQUIDEZ", "$212K", ""],
+    ] as const,
+    soonTag: "POUSO EM BREVE",
+    soonText:
+      "A telemetria da RobinFun será ativada no momento do pouso. Até lá, acompanhe os dados ao vivo na Solana.",
+    manifestIdx: "/// 002 — MANIFESTO",
+    manifestTitle: "O MANIFESTO",
+    manifestRows: [
+      ["SUPRIMENTO TOTAL", "1.000.000.000 HOUSTON"],
+      ["TAXA", "0% compra / 0% venda"],
+      ["CONTRATO", "Renunciado"],
+      ["LIQUIDEZ", "Travada permanentemente"],
+      ["DISTRIBUIÇÃO", "100% comunidade — sem alocação de equipe"],
+    ],
+    manifestNote:
+      "Sem promessas vazias. Sem chaves mestras. A missão pertence a quem segura o sinal — e o sinal pertence a todos.",
+    flightIdx: "/// 003 — PLANO DE VOO",
+    flightTitle: "A MISSÃO",
+    steps: [
+      ["FASE 01 — LANÇAMENTO", "Ignição", "Lançamento justo na Solana, liquidez travada e contrato renunciado no primeiro dia.", true],
+      ["FASE 02 — ÓRBITA", "Estabilização", "Listagens em agregadores, telemetria pública e crescimento orgânico da tripulação.", true],
+      ["FASE 03 — POUSO", "RobinFun", "Migração oficial para a RobinFun com a mesma comunidade e o mesmo apoio de sempre.", false],
+      ["FASE 04 — ALÉM", "O desconhecido", "O que vem depois do pouso não consta em nenhum registro. Ainda.", false],
+    ] as const,
+    groundIdx: "/// 004 — CONTROLE DE SOLO",
+    groundTitle: "JUNTE-SE À TRIPULAÇÃO",
+    groundText:
+      "O sinal é aberto e todos ouvem a mesma frequência. Entre para a comunidade e acompanhe a contagem regressiva.",
+    social: ["X / Twitter", "Telegram", "Dexscreener"],
+    footer: "HOUSTON — Fim da transmissão.",
+    footerDisclaimer:
+      "Criptomoedas são voláteis. Nada aqui é conselho financeiro. Faça sua própria pesquisa antes de embarcar.",
+    sameBanner: "Mesma comunidade, mesmo apoio — a missão continua na RobinFun.",
+  },
+  en: {
+    nav: ["Telemetry", "Manifesto", "Mission", "Community"],
+    live: "LIVE ON SOLANA",
+    heroTitleA: "HOUSTON",
+    heroTitleB: "WE HAVE A MISSION",
+    heroSub:
+      "Same community, same support — now in orbit on Solana. Contract renounced, liquidity locked, and a single destination: RobinFun.",
+    ctaBuy: "Buy on Solana",
+    ctaManifest: "Read the manifesto",
+    caLabel: "CA — click to copy",
+    caSoon: "ROBINFUN CA — COMING SOON",
+    netSol: "SOLANA",
+    netRob: "ROBINFUN",
+    telemetryIdx: "/// 001 — TELEMETRY",
+    telemetryTitle: "FLIGHT DATA",
+    stats: [
+      ["MARKET CAP", "$1.24M", "up"],
+      ["24H CHANGE", "+18.6%", "up"],
+      ["HOLDERS", "3,412", "up"],
+      ["LIQUIDITY", "$212K", ""],
+    ] as const,
+    soonTag: "LANDING SOON",
+    soonText:
+      "RobinFun telemetry goes live the moment we land. Until then, track live data on Solana.",
+    manifestIdx: "/// 002 — MANIFESTO",
+    manifestTitle: "THE MANIFESTO",
+    manifestRows: [
+      ["TOTAL SUPPLY", "1,000,000,000 HOUSTON"],
+      ["TAX", "0% buy / 0% sell"],
+      ["CONTRACT", "Renounced"],
+      ["LIQUIDITY", "Permanently locked"],
+      ["DISTRIBUTION", "100% community — no team allocation"],
+    ],
+    manifestNote:
+      "No empty promises. No master keys. The mission belongs to those who hold the signal — and the signal belongs to everyone.",
+    flightIdx: "/// 003 — FLIGHT PLAN",
+    flightTitle: "THE MISSION",
+    steps: [
+      ["PHASE 01 — LAUNCH", "Ignition", "Fair launch on Solana, liquidity locked and contract renounced on day one.", true],
+      ["PHASE 02 — ORBIT", "Stabilization", "Aggregator listings, public telemetry and organic crew growth.", true],
+      ["PHASE 03 — LANDING", "RobinFun", "Official migration to RobinFun with the same community and the same support as always.", false],
+      ["PHASE 04 — BEYOND", "The unknown", "What comes after the landing is on no record. Yet.", false],
+    ] as const,
+    groundIdx: "/// 004 — GROUND CONTROL",
+    groundTitle: "JOIN THE CREW",
+    groundText:
+      "The signal is open and everyone hears the same frequency. Join the community and follow the countdown.",
+    social: ["X / Twitter", "Telegram", "Dexscreener"],
+    footer: "HOUSTON — End of transmission.",
+    footerDisclaimer:
+      "Cryptocurrencies are volatile. Nothing here is financial advice. Do your own research before boarding.",
+    sameBanner: "Same community, same support — the mission continues on RobinFun.",
+  },
+} as const;
+
+const CA = "HouSTonSoLanaConTractAddrEss2026xxxxxPumpFun";
+
+function Ticker({ items }: { items: readonly string[] }) {
+  const seq = Array.from({ length: 4 }, () => items).flat();
   return (
     <div
       aria-hidden="true"
-      className="overflow-hidden border-y border-border bg-secondary py-3"
+      className="overflow-hidden whitespace-nowrap border-b border-border bg-secondary py-2"
     >
-      <div className="flex w-max animate-marquee gap-8">
-        {[...faixa, ...faixa].map((i) => (
+      <div className="inline-flex w-max animate-marquee gap-12">
+        {[...seq, ...seq].map((item, i) => (
           <span
             key={i}
-            className="font-display text-2xl tracking-[0.4em] text-muted-foreground"
+            className="inline-flex items-center gap-3 font-mono2 text-[11px] tracking-[0.08em] text-brass"
           >
-            ? ? ? ? ? ? ?
+            <span className="text-primary">✦</span>
+            {item}
           </span>
         ))}
       </div>
@@ -65,175 +160,318 @@ function Marquee() {
 }
 
 function Index() {
+  const [lang, setLang] = useState<Lang>("pt");
+  const [net, setNet] = useState<"sol" | "rob">("sol");
+  const [copied, setCopied] = useState(false);
+  const t = T[lang];
+
+  const copyCA = async () => {
+    try {
+      await navigator.clipboard.writeText(CA);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-lg text-foreground">
       {/* NAV */}
-      <header className="flex items-center justify-between border-b border-border px-6 py-4 md:px-12">
-        <span className="font-display text-2xl tracking-[0.3em]">
-          ODISSEIA<span className="text-primary">?</span>
-        </span>
-        <nav className="hidden gap-8 text-xs uppercase tracking-[0.25em] text-muted-foreground md:flex">
-          <a href="#missao" className="transition-colors hover:text-primary">
-            A Missão
-          </a>
-          <a href="#enigmas" className="transition-colors hover:text-primary">
-            Enigmas
-          </a>
-          <a href="#transmissao" className="transition-colors hover:text-primary">
-            Transmissão
-          </a>
-        </nav>
+      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-4 bg-gradient-to-b from-background/95 to-transparent px-7 py-5">
+        <a href="#" className="font-display text-2xl font-extrabold tracking-wide">
+          HOUSTON<span className="text-primary">.</span>
+        </a>
+        <div className="flex items-center gap-6">
+          <nav className="hidden gap-7 text-base text-muted-foreground md:flex">
+            {t.nav.map((label, i) => (
+              <a
+                key={label}
+                href={["#telemetria", "#manifesto", "#missao", "#comunidade"][i]}
+                className="transition-colors hover:text-foreground"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+          <div className="flex overflow-hidden rounded-sm border border-border">
+            {(["pt", "en"] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className={`px-3 py-1.5 font-mono2 text-xs tracking-wider transition-colors ${
+                  lang === l
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
+      {/* TICKER */}
+      <div className="fixed inset-x-0 top-[68px] z-40">
+        <Ticker
+          items={[t.live, t.sameBanner, "ROBINFUN — " + t.soonTag, "CONTRATO RENUNCIADO · LIQUIDEZ TRAVADA"]}
+        />
+      </div>
+
       {/* HERO */}
-      <section className="relative overflow-hidden">
-        <div className="grain-overlay relative">
+      <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-6 pb-16 pt-40 text-center">
+        <div className="absolute inset-0">
           <img
             src={heroAstronaut}
             alt="Astronauta de traje laranja flutuando por um corredor geométrico de estação espacial em tons sépia"
             width={1536}
             height={768}
-            className="h-[70vh] w-full object-cover"
+            className="h-full w-full object-cover opacity-60"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,oklch(0.155_0.006_60/15%)_0%,oklch(0.155_0.006_60/55%)_55%,oklch(0.155_0.006_60/96%)_100%)]" />
+          <div className="absolute inset-x-0 top-0 h-0.5 animate-scan bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 px-6 pb-10 md:px-12 md:pb-16">
-          <p className="mb-3 text-xs uppercase tracking-[0.4em] text-primary">
-            /// Transmissão interceptada — 1968
-          </p>
-          <h1 className="font-display text-6xl leading-[0.9] tracking-wide md:text-9xl">
-            O QUE ESPERA
+        <div className="relative z-10 flex flex-col items-center">
+          <span className="mb-7 inline-flex items-center gap-2.5 rounded-sm border border-primary/50 px-4 py-1.5 font-mono2 text-xs tracking-[0.08em] text-primary">
+            <span className="size-1.5 animate-pulse-dot rounded-full bg-primary" />
+            {t.live}
+          </span>
+
+          <h1 className="font-display text-[clamp(56px,13vw,128px)] font-extrabold leading-[0.95] tracking-wide text-foreground">
+            {t.heroTitleA}
             <br />
-            NO FIM <span className="text-outline">DO TÚNEL</span>
-            <span className="text-primary">?</span>
+            <span className="text-primary">{t.heroTitleB}</span>
           </h1>
-          <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted-foreground">
-            Uma tripulação. Um corredor que não termina. Doze portas seladas com
-            o mesmo símbolo. A resposta está lá dentro — a pergunta é se você
-            atravessa.
+
+          <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
+            {t.heroSub}
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
             <a
-              href="#enigmas"
-              className="border border-primary bg-primary px-8 py-3 text-xs font-bold uppercase tracking-[0.3em] text-primary-foreground transition-colors hover:bg-transparent hover:text-primary"
+              href="#telemetria"
+              className="rounded-sm border border-primary bg-primary px-8 py-3.5 font-mono2 text-sm text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-foreground hover:text-background"
             >
-              Iniciar descida
+              {t.ctaBuy}
             </a>
             <a
-              href="#missao"
-              className="border border-border px-8 py-3 text-xs uppercase tracking-[0.3em] text-foreground transition-colors hover:border-primary hover:text-primary"
+              href="#manifesto"
+              className="rounded-sm border border-foreground px-8 py-3.5 font-mono2 text-sm text-foreground transition-all hover:-translate-y-0.5 hover:bg-foreground hover:text-background"
             >
-              Ler o relatório
+              {t.ctaManifest}
             </a>
           </div>
+
+          <button
+            onClick={copyCA}
+            className="mt-9 inline-flex max-w-full items-center gap-2.5 rounded-sm border border-border bg-secondary px-4 py-2.5 font-mono2 text-[13px] text-muted-foreground transition-colors hover:border-brass hover:text-foreground"
+          >
+            <span className="break-all">{CA}</span>
+            {copied ? (
+              <Check className="size-4 shrink-0 text-launch" />
+            ) : (
+              <Copy className="size-4 shrink-0" />
+            )}
+          </button>
+
+          <span className="mt-5 inline-flex max-w-xl flex-wrap items-center justify-center gap-2 rounded-sm border border-dashed border-brass bg-brass/10 px-4 py-2.5 font-mono2 text-xs leading-relaxed text-muted-foreground">
+            <strong className="text-brass">✦</strong> {t.sameBanner}
+          </span>
         </div>
       </section>
 
-      <Marquee />
-
-      {/* MISSÃO */}
-      <section id="missao" className="px-6 py-20 md:px-12 md:py-28">
-        <div className="grid gap-12 md:grid-cols-2 md:items-center">
-          <div>
-            <p className="mb-3 text-xs uppercase tracking-[0.4em] text-primary">
-              /// Arquivo 001 — A Missão
-            </p>
-            <h2 className="font-display text-5xl leading-[0.9] tracking-wide md:text-7xl">
-              NINGUÉM VOLTOU
-              <br />
-              PARA CONTAR<span className="text-primary">.</span>
+      {/* TELEMETRIA */}
+      <section id="telemetria" className="border-t border-border px-7 py-20 md:py-24">
+        <div className="mx-auto max-w-[920px]">
+          <div className="mb-8 flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-[clamp(34px,6vw,52px)] font-extrabold leading-none tracking-wide">
+              {t.telemetryTitle}
             </h2>
-            <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-              Em órbita silenciosa, a estação aguarda. Cada instrumento funciona.
-              Cada luz permanece acesa. Mas não há resposta no rádio — apenas um
-              sinal que se repete, medido, paciente, como uma pergunta feita ao
-              vazio.
-            </p>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Esta página é o que restou do relatório. O resto foi classificado,
-              queimado, ou nunca foi escrito. Depende de em quem você acredita.
-            </p>
+            <span className="font-mono2 text-sm text-muted-foreground">{t.telemetryIdx}</span>
           </div>
-          <div className="flex justify-center">
-            <img
-              src={questionBadge}
-              alt="Selo octogonal envelhecido com um ponto de interrogação vermelho"
-              width={768}
-              height={768}
-              loading="lazy"
-              className="w-56 animate-float-slow md:w-80"
-            />
+
+          <div className="mb-9 inline-flex overflow-hidden rounded-sm border border-border">
+            {(["sol", "rob"] as const).map((n, i) => (
+              <button
+                key={n}
+                onClick={() => setNet(n)}
+                className={`px-6 py-2.5 font-mono2 text-[13px] tracking-wider transition-colors ${
+                  i === 0 ? "border-r border-border" : ""
+                } ${
+                  net === n
+                    ? "bg-primary text-primary-foreground shadow-[0_0_18px_oklch(0.53_0.18_30/50%)]"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {n === "sol" ? t.netSol : t.netRob}
+              </button>
+            ))}
+          </div>
+
+          {net === "sol" ? (
+            <>
+              <div className="mb-6 grid grid-cols-2 border border-border bg-secondary md:grid-cols-4">
+                {t.stats.map(([label, value, dir], i) => (
+                  <div
+                    key={label}
+                    className={`p-5 transition-colors hover:bg-primary/10 ${
+                      i % 4 !== 3 ? "md:border-r md:border-border" : ""
+                    } ${i % 2 === 0 ? "border-r border-border md:border-r" : ""} ${
+                      i < 2 ? "border-b border-border md:border-b-0" : ""
+                    }`}
+                  >
+                    <p className="mb-2 font-mono2 text-[11px] tracking-wider text-muted-foreground">
+                      {label}
+                    </p>
+                    <p
+                      className={`font-display text-2xl font-extrabold ${
+                        dir === "up" ? "text-launch" : dir === "down" ? "text-primary" : "text-foreground"
+                      }`}
+                    >
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex h-[420px] animate-glow-pulse flex-col items-center justify-center gap-4 border border-border bg-secondary md:h-[520px]">
+                <img
+                  src={questionBadge}
+                  alt="Selo octogonal envelhecido com um ponto de interrogação vermelho"
+                  width={768}
+                  height={768}
+                  loading="lazy"
+                  className="w-32 animate-float-slow opacity-90"
+                />
+                <p className="font-mono2 text-xs tracking-[0.1em] text-muted-foreground">
+                  DEXSCREENER EMBED — {lang === "pt" ? "conectar ao par oficial" : "connect the official pair"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 border border-dashed border-border bg-secondary px-6 py-12 text-center">
+              <img
+                src={questionBadge}
+                alt="Selo octogonal envelhecido com um ponto de interrogação vermelho"
+                width={768}
+                height={768}
+                loading="lazy"
+                className="w-24 animate-float-slow"
+              />
+              <span className="rounded-sm border border-brass px-3 py-1.5 font-mono2 text-xs tracking-[0.1em] text-brass">
+                {t.soonTag}
+              </span>
+              <p className="max-w-md text-muted-foreground">{t.soonText}</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* MANIFESTO */}
+      <section id="manifesto" className="border-t border-border px-7 py-20">
+        <div className="mx-auto max-w-[920px]">
+          <div className="mb-10 flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-[clamp(34px,6vw,52px)] font-extrabold leading-none tracking-wide">
+              {t.manifestTitle}
+            </h2>
+            <span className="font-mono2 text-sm text-muted-foreground">{t.manifestIdx}</span>
+          </div>
+
+          <div className="grid items-start gap-12 md:grid-cols-[1.1fr_1fr]">
+            <div className="border-t border-border">
+              {t.manifestRows.map(([k, v]) => (
+                <div
+                  key={k}
+                  className="flex items-center justify-between gap-4 border-b border-border py-4 transition-all hover:bg-primary/5 hover:pl-2"
+                >
+                  <span className="whitespace-nowrap text-muted-foreground">{k}</span>
+                  <span className="text-right font-mono2 text-sm break-all">{v}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col items-center gap-8 md:items-start">
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                <strong className="text-foreground">HOUSTON</strong> — {t.manifestNote}
+              </p>
+              <img
+                src={questionBadge}
+                alt="Selo octogonal envelhecido com um ponto de interrogação vermelho"
+                width={768}
+                height={768}
+                loading="lazy"
+                className="w-40 animate-float-slow"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ENIGMAS */}
-      <section id="enigmas" className="border-t border-border px-6 py-20 md:px-12 md:py-28">
-        <p className="mb-3 text-xs uppercase tracking-[0.4em] text-primary">
-          /// Arquivo 002 — Registros
-        </p>
-        <h2 className="mb-12 font-display text-5xl leading-[0.9] tracking-wide md:text-7xl">
-          TRÊS ENIGMAS<span className="text-primary">?</span>
-        </h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {ENIGMAS.map((e) => (
-            <article
-              key={e.numero}
-              className="group border border-border bg-card p-8 transition-colors hover:border-primary"
-            >
-              <div className="flex items-baseline justify-between">
-                <span className="font-display text-5xl text-primary">
-                  {e.numero}
+      {/* PLANO DE VOO */}
+      <section id="missao" className="border-t border-border px-7 py-20">
+        <div className="mx-auto max-w-[920px]">
+          <div className="mb-10 flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-[clamp(34px,6vw,52px)] font-extrabold leading-none tracking-wide">
+              {t.flightTitle}
+            </h2>
+            <span className="font-mono2 text-sm text-muted-foreground">{t.flightIdx}</span>
+          </div>
+
+          <div className="relative pl-8 before:absolute before:bottom-1.5 before:left-[5px] before:top-1.5 before:w-px before:bg-border">
+            {t.steps.map(([tag, title, text, done]) => (
+              <div
+                key={tag}
+                className="group relative pb-11 transition-transform last:pb-0 hover:translate-x-1 before:absolute before:-left-8 before:top-1 before:size-[11px] before:rounded-full before:border-2 before:border-primary before:transition-shadow hover:before:shadow-[0_0_12px_oklch(0.53_0.18_30/60%)]"
+                style={{
+                  // completed steps get a filled node
+                }}
+                data-done={done}
+              >
+                <span
+                  className={`absolute -left-8 top-1 size-[11px] rounded-full border-2 border-primary ${
+                    done ? "bg-primary" : "bg-background"
+                  }`}
+                />
+                <span className="mb-2 block font-mono2 text-[11px] tracking-[0.06em] text-brass">
+                  {tag}
                 </span>
-                <span className="font-display text-3xl text-muted-foreground transition-colors group-hover:text-primary">
-                  ?
-                </span>
+                <h3 className="mb-1.5 font-display text-2xl font-extrabold tracking-wide transition-colors group-hover:text-primary">
+                  {title}
+                </h3>
+                <p className="max-w-xl text-base text-muted-foreground">{text}</p>
               </div>
-              <h3 className="mt-6 font-display text-3xl tracking-wide">
-                {e.titulo}
-              </h3>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                {e.texto}
-              </p>
-            </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* COMUNIDADE */}
+      <section id="comunidade" className="border-t border-border px-7 py-24 text-center">
+        <span className="mb-4 block font-mono2 text-sm text-muted-foreground">{t.groundIdx}</span>
+        <h2 className="mb-4 font-display text-[clamp(34px,7vw,56px)] font-extrabold leading-none tracking-wide">
+          {t.groundTitle}
+        </h2>
+        <p className="mx-auto mb-9 max-w-md text-muted-foreground">{t.groundText}</p>
+        <div className="flex flex-wrap justify-center gap-4">
+          {t.social.map((s) => (
+            <a
+              key={s}
+              href="#"
+              className="rounded-sm border border-foreground px-7 py-3 font-mono2 text-sm transition-all hover:-translate-y-0.5 hover:bg-foreground hover:text-background"
+            >
+              {s}
+            </a>
           ))}
         </div>
       </section>
 
-      <Marquee />
-
-      {/* TRANSMISSÃO */}
-      <section
-        id="transmissao"
-        className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-20 text-center md:px-12"
-      >
-        <p className="mb-3 text-xs uppercase tracking-[0.4em] text-primary">
-          /// Canal aberto
-        </p>
-        <h2 className="font-display text-5xl leading-[0.9] tracking-wide md:text-8xl">
-          VOCÊ OUVIU O SINAL
-          <span className="animate-blink text-primary">_</span>
-        </h2>
-        <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-foreground">
-          A porta final ainda está selada. Quando a sequência mudar, os que
-          estiverem ouvindo serão os primeiros a saber.
-        </p>
-        <a
-          href="#"
-          className="mt-10 border border-primary bg-primary px-10 py-4 text-xs font-bold uppercase tracking-[0.3em] text-primary-foreground transition-colors hover:bg-transparent hover:text-primary"
-        >
-          Aguardar transmissão
-        </a>
-      </section>
-
       {/* FOOTER */}
-      <footer className="flex flex-col items-center gap-4 border-t border-border px-6 py-8 text-xs uppercase tracking-[0.25em] text-muted-foreground md:flex-row md:justify-between md:px-12">
-        <span className="font-display text-lg tracking-[0.3em] text-foreground">
-          ODISSEIA<span className="text-primary">?</span>
-        </span>
-        <span>Fim da transmissão — 1968 / 2026</span>
-        <span>Nenhuma resposta foi encontrada</span>
+      <footer className="border-t border-border px-7 pb-10 pt-8 text-center font-mono2 text-xs text-muted-foreground">
+        <p className="mx-auto mb-2 max-w-xl">{t.footerDisclaimer}</p>
+        <p>
+          HOUSTON<span className="text-primary">.</span> — {t.footer}
+        </p>
       </footer>
     </main>
   );
