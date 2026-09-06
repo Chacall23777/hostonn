@@ -1,14 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { Copy, Check } from "lucide-react";
-import heroAstronaut from "../assets/hero-astronaut.jpg";
-import questionBadge from "../assets/question-badge.png";
-
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "HOUSTON — Solana / RobinFun" },
-      {
+{
         name: "description",
         content:
           "HOUSTON: telemetria ao vivo, manifesto e plano de voo da missão na Solana. Mesma comunidade, mesmo apoio — pouso na RobinFun em breve.",
@@ -238,7 +228,7 @@ function Index() {
         <div className="flex items-center gap-6">
           <nav className="hidden gap-7 text-base text-muted-foreground md:flex">
             {t.nav.map((label, i) => (
-              
+              <a
                 key={label}
                 href={["#telemetria", "#manifesto", "#missao", "#comunidade"][i]}
                 className="transition-colors hover:text-foreground"
@@ -303,7 +293,7 @@ function Index() {
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            
+            <a
               href={JUPITER_BUY_URL}
               target="_blank"
               rel="noopener noreferrer"
@@ -311,7 +301,7 @@ function Index() {
             >
               {t.ctaBuy}
             </a>
-            
+            <a
               href="#manifesto"
               className="rounded-sm border border-foreground px-8 py-3.5 font-mono2 text-sm text-foreground transition-all hover:-translate-y-0.5 hover:bg-foreground hover:text-background"
             >
@@ -368,36 +358,32 @@ function Index() {
           {net === "sol" ? (
             <>
               <div className="mb-6 grid grid-cols-2 border border-border bg-secondary md:grid-cols-4">
-                {t.statsLabels.map((label, i) => {
-                  const value = [
-                    liveStats.price,
-                    liveStats.mcap,
-                    liveStats.liquidity,
-                    liveStats.change24h,
-                  ][i];
-                  const dir = i === 3 ? liveStats.changeDir : "";
-                  return (
-                    <div
-                      key={label}
-                      className={`p-5 transition-colors hover:bg-primary/10 ${
-                        i % 4 !== 3 ? "md:border-r md:border-border" : ""
-                      } ${i % 2 === 0 ? "border-r border-border md:border-r" : ""} ${
-                        i < 2 ? "border-b border-border md:border-b-0" : ""
+                {[
+                  { label: t.statsLabels[0], value: liveStats.price, dir: "" as "up" | "down" | "" },
+                  { label: t.statsLabels[1], value: liveStats.mcap, dir: "" as "up" | "down" | "" },
+                  { label: t.statsLabels[2], value: liveStats.liquidity, dir: "" as "up" | "down" | "" },
+                  { label: t.statsLabels[3], value: liveStats.change24h, dir: liveStats.changeDir },
+                ].map(({ label, value, dir }, i) => (
+                  <div
+                    key={label}
+                    className={`p-5 transition-colors hover:bg-primary/10 ${
+                      i % 4 !== 3 ? "md:border-r md:border-border" : ""
+                    } ${i % 2 === 0 ? "border-r border-border md:border-r" : ""} ${
+                      i < 2 ? "border-b border-border md:border-b-0" : ""
+                    }`}
+                  >
+                    <p className="mb-2 font-mono2 text-[11px] tracking-wider text-muted-foreground">
+                      {label}
+                    </p>
+                    <p
+                      className={`font-display text-2xl font-extrabold ${
+                        dir === "up" ? "text-launch" : dir === "down" ? "text-primary" : "text-foreground"
                       }`}
                     >
-                      <p className="mb-2 font-mono2 text-[11px] tracking-wider text-muted-foreground">
-                        {label}
-                      </p>
-                      <p
-                        className={`font-display text-2xl font-extrabold ${
-                          dir === "up" ? "text-launch" : dir === "down" ? "text-primary" : "text-foreground"
-                        }`}
-                      >
-                        {value}
-                      </p>
-                    </div>
-                  );
-                })}
+                      {value}
+                    </p>
+                  </div>
+                ))}
               </div>
 
               <div className="h-[520px] animate-glow-pulse border border-border bg-secondary md:h-[620px]">
@@ -447,7 +433,7 @@ function Index() {
                 >
                   <span className="whitespace-nowrap text-muted-foreground">{k}</span>
                   {v === CA ? (
-                    
+                    <a
                       href={SOLSCAN_URL}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -532,7 +518,7 @@ function Index() {
                   ? X_URL
                   : DEXSCREENER_URL;
             return (
-              
+              <a
                 key={s}
                 href={href}
                 target="_blank"
