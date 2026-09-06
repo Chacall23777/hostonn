@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Copy, Check } from "lucide-react";
 import heroAstronaut from "../assets/hero-astronaut.jpg";
 import questionBadge from "../assets/question-badge.png";
@@ -26,6 +26,13 @@ export const Route = createFileRoute("/")({
 
 type Lang = "pt" | "en";
 
+const CA = "ExrPSgaWtDDvFdHicFCJTDLiqiahpxea46QDWc4Efomo";
+const DEXSCREENER_URL = `https://dexscreener.com/solana/${CA}`;
+const SOLSCAN_URL = `https://solscan.io/token/${CA}`;
+const JUPITER_BUY_URL = `https://jup.ag/swap/SOL-${CA}`;
+const TELEGRAM_URL = "https://t.me/HoustonFomo";
+const X_URL = "https://x.com/dmmarx1307/status/2067378732742988261";
+
 const T = {
   pt: {
     nav: ["Telemetria", "Manifesto", "Missão", "Comunidade"],
@@ -42,21 +49,18 @@ const T = {
     netRob: "ROBINFUN",
     telemetryIdx: "/// 001 — TELEMETRIA",
     telemetryTitle: "DADOS DE VOO",
-    stats: [
-      ["CAPITALIZAÇÃO", "$1.24M", "up"],
-      ["VARIAÇÃO 24H", "+18,6%", "up"],
-      ["HOLDERS", "3.412", "up"],
-      ["LIQUIDEZ", "$212K", ""],
-    ] as const,
+    statsLabels: ["PREÇO", "CAP. DE MERCADO", "LIQUIDEZ", "VARIAÇÃO 24H"] as const,
     soonTag: "POUSO EM BREVE",
     soonText:
-      "A telemetria da RobinFun será ativada no momento do pouso. Até lá, acompanhe os dados ao vivo na Solana.",
+      "O contrato da RobinFun será totalmente novo e independente do contrato da Solana — mesma comunidade, mesmo apoio, mas sem vínculo técnico entre os dois tokens. Assim que for implantado, o CA e a telemetria ao vivo aparecem aqui. Desconfie de qualquer CA \"RobinFun\" divulgado antes da confirmação oficial.",
     manifestIdx: "/// 002 — MANIFESTO",
     manifestTitle: "O MANIFESTO",
     manifestRows: [
+      ["REDE", "Solana"],
+      ["CONTRATO (CA)", CA],
       ["SUPRIMENTO TOTAL", "1.000.000.000 HOUSTON"],
       ["TAXA", "0% compra / 0% venda"],
-      ["CONTRATO", "Renunciado"],
+      ["CONTRATO RENUNCIADO", "Sim"],
       ["LIQUIDEZ", "Travada permanentemente"],
       ["DISTRIBUIÇÃO", "100% comunidade — sem alocação de equipe"],
     ],
@@ -95,21 +99,18 @@ const T = {
     netRob: "ROBINFUN",
     telemetryIdx: "/// 001 — TELEMETRY",
     telemetryTitle: "FLIGHT DATA",
-    stats: [
-      ["MARKET CAP", "$1.24M", "up"],
-      ["24H CHANGE", "+18.6%", "up"],
-      ["HOLDERS", "3,412", "up"],
-      ["LIQUIDITY", "$212K", ""],
-    ] as const,
+    statsLabels: ["PRICE", "MARKET CAP", "LIQUIDITY", "24H CHANGE"] as const,
     soonTag: "LANDING SOON",
     soonText:
-      "RobinFun telemetry goes live the moment we land. Until then, track live data on Solana.",
+      "The RobinFun contract will be entirely new and independent from the Solana contract — same community, same support, but no technical link between the two tokens. Once deployed, the CA and live telemetry appear here. Be wary of any \"RobinFun\" CA shared before official confirmation.",
     manifestIdx: "/// 002 — MANIFESTO",
     manifestTitle: "THE MANIFESTO",
     manifestRows: [
+      ["NETWORK", "Solana"],
+      ["CONTRACT (CA)", CA],
       ["TOTAL SUPPLY", "1,000,000,000 HOUSTON"],
       ["TAX", "0% buy / 0% sell"],
-      ["CONTRACT", "Renounced"],
+      ["CONTRACT RENOUNCED", "Yes"],
       ["LIQUIDITY", "Permanently locked"],
       ["DISTRIBUTION", "100% community — no team allocation"],
     ],
@@ -135,8 +136,6 @@ const T = {
   },
 } as const;
 
-const CA = "HouSTonSoLanaConTractAddrEss2026xxxxxPumpFun";
-
 function Ticker({ items }: { items: readonly string[] }) {
   const seq = Array.from({ length: 4 }, () => items).flat();
   return (
@@ -159,10 +158,64 @@ function Ticker({ items }: { items: readonly string[] }) {
   );
 }
 
+function formatCompact(n: number | undefined | null): string {
+  if (n === undefined || n === null || Number.isNaN(n)) return "—";
+  if (n >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
+  if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+  if (n >= 1e3) return "$" + (n / 1e3).toFixed(1) + "K";
+  return "$" + n.toFixed(0);
+}
+
+function useLiveSolanaStats(ca: string) {
+  const [stats, setStats] = useState<{
+    price: string;
+    mcap: string;
+    liquidity: string;
+    change24h: string;
+    changeDir: "up" | "down" | "";
+  }>({ price: "—", mcap: "—", liquidity: "—", change24h: "—", changeDir: "" });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchStats() {
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${ca}`);
+        const data = await res.json();
+        const pair = data?.pairs?.[0];
+        if (!pair || cancelled) return;
+        const change = pair.priceChange?.h24;
+        setStats({
+          price: pair.priceUsd ? "$" + Number(pair.priceUsd).toPrecision(4) : "—",
+          mcap: formatCompact(pair.fdv ?? pair.marketCap),
+          liquidity: formatCompact(pair.liquidity?.usd),
+          change24h:
+            change !== undefined && change !== null
+              ? (change >= 0 ? "+" : "") + Number(change).toFixed(2) + "%"
+              : "—",
+          changeDir: change === undefined || change === null ? "" : change >= 0 ? "up" : "down",
+        });
+      } catch {
+        /* keep previous/placeholder values on failure */
+      }
+    }
+
+    fetchStats();
+    const id = setInterval(fetchStats, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [ca]);
+
+  return stats;
+}
+
 function Index() {
   const [lang, setLang] = useState<Lang>("pt");
   const [net, setNet] = useState<"sol" | "rob">("sol");
   const [copied, setCopied] = useState(false);
+  const liveStats = useLiveSolanaStats(CA);
   const t = T[lang];
 
   const copyCA = async () => {
@@ -185,7 +238,7 @@ function Index() {
         <div className="flex items-center gap-6">
           <nav className="hidden gap-7 text-base text-muted-foreground md:flex">
             {t.nav.map((label, i) => (
-              <a
+              
                 key={label}
                 href={["#telemetria", "#manifesto", "#missao", "#comunidade"][i]}
                 className="transition-colors hover:text-foreground"
@@ -250,13 +303,15 @@ function Index() {
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <a
-              href="#telemetria"
+            
+              href={JUPITER_BUY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-sm border border-primary bg-primary px-8 py-3.5 font-mono2 text-sm text-primary-foreground transition-all hover:-translate-y-0.5 hover:bg-foreground hover:text-background"
             >
               {t.ctaBuy}
             </a>
-            <a
+            
               href="#manifesto"
               className="rounded-sm border border-foreground px-8 py-3.5 font-mono2 text-sm text-foreground transition-all hover:-translate-y-0.5 hover:bg-foreground hover:text-background"
             >
@@ -313,41 +368,45 @@ function Index() {
           {net === "sol" ? (
             <>
               <div className="mb-6 grid grid-cols-2 border border-border bg-secondary md:grid-cols-4">
-                {t.stats.map(([label, value, dir], i) => (
-                  <div
-                    key={label}
-                    className={`p-5 transition-colors hover:bg-primary/10 ${
-                      i % 4 !== 3 ? "md:border-r md:border-border" : ""
-                    } ${i % 2 === 0 ? "border-r border-border md:border-r" : ""} ${
-                      i < 2 ? "border-b border-border md:border-b-0" : ""
-                    }`}
-                  >
-                    <p className="mb-2 font-mono2 text-[11px] tracking-wider text-muted-foreground">
-                      {label}
-                    </p>
-                    <p
-                      className={`font-display text-2xl font-extrabold ${
-                        dir === "up" ? "text-launch" : dir === "down" ? "text-primary" : "text-foreground"
+                {t.statsLabels.map((label, i) => {
+                  const value = [
+                    liveStats.price,
+                    liveStats.mcap,
+                    liveStats.liquidity,
+                    liveStats.change24h,
+                  ][i];
+                  const dir = i === 3 ? liveStats.changeDir : "";
+                  return (
+                    <div
+                      key={label}
+                      className={`p-5 transition-colors hover:bg-primary/10 ${
+                        i % 4 !== 3 ? "md:border-r md:border-border" : ""
+                      } ${i % 2 === 0 ? "border-r border-border md:border-r" : ""} ${
+                        i < 2 ? "border-b border-border md:border-b-0" : ""
                       }`}
                     >
-                      {value}
-                    </p>
-                  </div>
-                ))}
+                      <p className="mb-2 font-mono2 text-[11px] tracking-wider text-muted-foreground">
+                        {label}
+                      </p>
+                      <p
+                        className={`font-display text-2xl font-extrabold ${
+                          dir === "up" ? "text-launch" : dir === "down" ? "text-primary" : "text-foreground"
+                        }`}
+                      >
+                        {value}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div className="flex h-[420px] animate-glow-pulse flex-col items-center justify-center gap-4 border border-border bg-secondary md:h-[520px]">
-                <img
-                  src={questionBadge}
-                  alt="Selo octogonal envelhecido com um ponto de interrogação vermelho"
-                  width={768}
-                  height={768}
+              <div className="h-[520px] animate-glow-pulse border border-border bg-secondary md:h-[620px]">
+                <iframe
+                  src={`${DEXSCREENER_URL}?embed=1&theme=dark&trades=1&info=0`}
+                  title="HOUSTON — gráfico e transações ao vivo (Solana)"
                   loading="lazy"
-                  className="w-32 animate-float-slow opacity-90"
+                  className="h-full w-full border-0"
                 />
-                <p className="font-mono2 text-xs tracking-[0.1em] text-muted-foreground">
-                  DEXSCREENER EMBED — {lang === "pt" ? "conectar ao par oficial" : "connect the official pair"}
-                </p>
               </div>
             </>
           ) : (
@@ -387,7 +446,18 @@ function Index() {
                   className="flex items-center justify-between gap-4 border-b border-border py-4 transition-all hover:bg-primary/5 hover:pl-2"
                 >
                   <span className="whitespace-nowrap text-muted-foreground">{k}</span>
-                  <span className="text-right font-mono2 text-sm break-all">{v}</span>
+                  {v === CA ? (
+                    
+                      href={SOLSCAN_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-right font-mono2 text-sm break-all text-primary hover:underline"
+                    >
+                      {v}
+                    </a>
+                  ) : (
+                    <span className="text-right font-mono2 text-sm break-all">{v}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -454,15 +524,25 @@ function Index() {
         </h2>
         <p className="mx-auto mb-9 max-w-md text-muted-foreground">{t.groundText}</p>
         <div className="flex flex-wrap justify-center gap-4">
-          {t.social.map((s) => (
-            <a
-              key={s}
-              href="#"
-              className="rounded-sm border border-foreground px-7 py-3 font-mono2 text-sm transition-all hover:-translate-y-0.5 hover:bg-foreground hover:text-background"
-            >
-              {s}
-            </a>
-          ))}
+          {t.social.map((s) => {
+            const href =
+              s.toLowerCase().includes("telegram")
+                ? TELEGRAM_URL
+                : s.toLowerCase().includes("x") || s.toLowerCase().includes("twitter")
+                  ? X_URL
+                  : DEXSCREENER_URL;
+            return (
+              
+                key={s}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-sm border border-foreground px-7 py-3 font-mono2 text-sm transition-all hover:-translate-y-0.5 hover:bg-foreground hover:text-background"
+              >
+                {s}
+              </a>
+            );
+          })}
         </div>
       </section>
 
